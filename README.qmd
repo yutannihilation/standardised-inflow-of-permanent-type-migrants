@@ -59,12 +59,12 @@ d_summarised <- d |>
     year = TIME_PERIOD,
     type = fct_recode(
       `Entry category`,
-      "その他" = "Other",
       "自由移動" = "Free movements",
       "労働" = "Work",
-      "人道" = "Humanitarian",
-      "家族" = "Family",
       "帯同家族" = "Accompanying family of workers",
+      "家族" = "Family",
+      "人道" = "Humanitarian",
+      "その他" = "Other",
     )
   ) |>
   summarise(n = sum(OBS_VALUE, na.rm = TRUE), .groups = "drop")
@@ -121,18 +121,20 @@ d_pct <- d_summarised |>
 
 ggplot(d_pct, aes(type, `%`, colour = year, group = factor(year))) +
   geom_polygon(fill = NA) +
-  see::coord_radar() +
+  see::coord_radar(clip = "off") +
   facet_wrap(vars(area)) +
   scale_y_continuous(labels = scales::label_percent()) +
-  scale_colour_binned(breaks = 2014:2025) +
+  scale_colour_continuous(breaks = 2013:2024) +
   theme_minimal() +
   theme(
-    text = element_text(size = 10),
+    text = element_text(size = 12),
     axis.title = element_blank(),
     strip.text = element_text(size = 15, face = "bold"),
+    axis.text.x = element_text(margin = margin(t = 4, unit = "pt")),
+    axis.text.y = element_blank(),
     legend.position = "bottom",
     legend.title.position = "top",
-    legend.text = element_text(angle = -30, hjust = 0),
+    legend.text = element_text(size = 9, angle = -45, hjust = 0),
     legend.key.width = unit(0.1, "npc"),
     legend.key.height = unit(0.015, "npc"),
     panel.spacing = unit(0.1, "npc"),
