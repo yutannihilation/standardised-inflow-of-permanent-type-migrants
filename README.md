@@ -29,11 +29,63 @@ d <- readr::read_csv(
     ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.
 
 ``` r
+unique(d$`Reference area`)
+```
+
+     [1] "Belgium"         "Czechia"         "Estonia"         "Finland"        
+     [5] "France"          "Germany"         "Israel"          "Italy"          
+     [9] "Lithuania"       "Luxembourg"      "Mexico"          "Netherlands"    
+    [13] "Norway"          "Portugal"        "Slovak Republic" "Slovenia"       
+    [17] "Spain"           "Switzerland"     "Ireland"         "Sweden"         
+    [21] "New Zealand"     "Canada"          "Japan"           "Korea"          
+    [25] "United Kingdom"  "United States"   "Australia"       "Denmark"        
+    [29] "Austria"        
+
+``` r
 d_summarised <- d |>
   group_by(
-    area = `Reference area`,
+    area = recode(
+      `Reference area`,
+      "Belgium" = "ベルギー",
+      "Czechia" = "チェコ",
+      "Estonia" = "エストニア",
+      "Finland" = "フィンランド",
+      "France" = "フランス",
+      "Germany" = "ドイツ",
+      "Israel" = "イスラエル",
+      "Italy" = "イタリア",
+      "Lithuania" = "リトアニア",
+      "Luxembourg" = "ルクセンブルク",
+      "Mexico" = "メキシコ",
+      "Netherlands" = "オランダ",
+      "Norway" = "ノルウェー",
+      "Portugal" = "ポルトガル",
+      "Slovak Republic" = "スロバキア",
+      "Slovenia" = "スロベニア",
+      "Spain" = "スペイン",
+      "Switzerland" = "スイス",
+      "Ireland" = "アイルランド",
+      "Sweden" = "スウェーデン",
+      "New Zealand" = "ニュージーランド",
+      "Canada" = "カナダ",
+      "Japan" = "日本",
+      "Korea" = "韓国",
+      "United Kingdom" = "イギリス",
+      "United States" = "アメリカ",
+      "Australia" = "オーストラリア",
+      "Denmark" = "デンマーク",
+      "Austria" = "オーストラリア"
+    ),
     year = TIME_PERIOD,
-    type = recode(`Entry category`, "Accompanying family of workers" = "Family")
+    type = fct_recode(
+      `Entry category`,
+      "その他" = "Other",
+      "自由移動" = "Free movements",
+      "労働" = "Work",
+      "人道" = "Humanitarian",
+      "家族" = "Family",
+      "帯同家族" = "Accompanying family of workers",
+    )
   ) |>
   summarise(n = sum(OBS_VALUE, na.rm = TRUE), .groups = "drop")
 ```
@@ -49,15 +101,31 @@ ggplot(d_by_country, aes(year, n, colour = area)) +
   geom_line() +
   geom_point() +
   gghighlight::gghighlight(
-    sum(n),
-    max_highlight = 15L,
+    area %in%
+      c(
+        "アメリカ",
+        "ドイツ",
+        "カナダ",
+        "イギリス",
+        "スペイン",
+        "オーストラリア",
+        "フランス",
+        "韓国",
+        "日本"
+      ),
     line_label_type = "sec_axis"
   ) +
+  scale_color_viridis_d() +
   theme_light() +
   theme(
     text = element_text(size = 12)
   )
 ```
+
+    Warning: Tried to calculate with group_by(), but the calculation failed.
+    Falling back to ungrouped filter operation...
+    Tried to calculate with group_by(), but the calculation failed.
+    Falling back to ungrouped filter operation...
 
     label_key: area
 
@@ -70,12 +138,12 @@ d_pct <- d_summarised |>
   filter(
     area %in%
       c(
-        "United States",
-        "Germany",
-        "United Kingdom",
-        "Canada",
-        "Korea",
-        "Japan"
+        "アメリカ",
+        "ドイツ",
+        "イギリス",
+        "カナダ",
+        "韓国",
+        "日本"
       )
   ) |>
   mutate(`%` = n / sum(n), .by = c(area, year))
@@ -85,11 +153,18 @@ ggplot(d_pct, aes(type, `%`, colour = year, group = factor(year))) +
   see::coord_radar() +
   facet_wrap(vars(area)) +
   scale_y_continuous(labels = scales::label_percent()) +
+  scale_colour_binned(breaks = 2014:2025) +
   theme_minimal() +
   theme(
-    text = element_text(size = 12),
+    text = element_text(size = 10),
     axis.title = element_blank(),
-    strip.text = element_text(size = 15, face = "bold")
+    strip.text = element_text(size = 15, face = "bold"),
+    legend.position = "bottom",
+    legend.title.position = "top",
+    legend.text = element_text(angle = -30, hjust = 0),
+    legend.key.width = unit(0.1, "npc"),
+    legend.key.height = unit(0.015, "npc"),
+    panel.spacing = unit(0.1, "npc"),
   )
 ```
 
